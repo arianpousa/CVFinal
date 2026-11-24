@@ -23,6 +23,8 @@ No server, no API key. All processing runs in a Web Worker so the page never fre
 | 05 | [05-troubleshooting-hangs.md](05-troubleshooting-hangs.md) | Why it hangs (stuck worker, blocked upgrade, memory) and fixes in Chrome DevTools | all |
 | — | [expert-roster.md](expert-roster.md) | The 11-agent team, one-line jobs, shared skills matrix, lifecycle and rubric coverage | orchestrator / meta-agent |
 
+Per-agent reference notes and **tested** examples live in [`../knowledge/`](../knowledge/README.md).
+
 ## Key decisions
 
 - **Self-host a pinned `opencv.js`** (4.10.0, 10.4 MB raw / ~3.4 MB gzip, Wasm embedded as base64) under `/vendor/`, with a long-lived immutable cache header.

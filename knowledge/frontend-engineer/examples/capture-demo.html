@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- capture-demo.html: wiring capture.js into a page (upload + camera + export). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Capture demo</title></head>
+<body>
+  <p id="msg" role="status" aria-live="polite"></p>
+  <label>Upload photo <input id="file" type="file" accept="image/*"></label>
+  <button id="cam">Use camera</button> <button id="shot" disabled>Take photo</button>
+  <video id="video" hidden></video>
+  <div id="preview"></div>
+<script type="module">
+import * as C from './capture.js';
+const $ = (id) => document.getElementById(id);
+const show = (canvas) => { $('preview').replaceChildren(canvas); window.__last = canvas; };
+const say = (t) => { $('msg').textContent = t; };
+let stream = null;
+
+$('file').onchange = async (e) => {
+  try { show(await C.loadFromFile(e.target.files[0])); say('Photo loaded.'); }
+  catch (err) { say(err instanceof C.UserFacingError ? err.message : 'Could not open that image.'); }
+};
+$('cam').onclick = async () => {
+  try { stream = await C.startCamera($('video')); $('video').hidden = false; $('shot').disabled = false; say('Camera on.'); }
+  catch (err) { say(err.message); }
+};
+$('shot').onclick = () => {
+  show(C.captureFrame($('video'), stream)); $('video').hidden = true; $('shot').disabled = true;
+  window.__trackStates = stream.getTracks().map((t) => t.readyState); stream = null; say('Photo taken.');
+};
+window.__C = C;
+</script>
+</body>
+</html>

@@ -13,7 +13,10 @@ function markReady(){ if (!ready){ ready = true; postMessage({type:'ready'}); } 
 self.Module = { onRuntimeInitialized: markReady };
 try { importScripts('/vendor/opencv-4.10.0.js'); }
 catch (e) { postMessage({type:'fatal', message:'opencv.js failed to load: ' + e.message}); }
-if (self.cv && typeof self.cv.then === 'function') self.cv.then(r => { self.cv = r; markReady(); });
+// The module is a THENABLE: use the callback form only. `await cv`, `resolve(cv)` or `return cv`
+// from an async function loops forever (reproduced in knowledge/opencv-expert/docs/01-loading-opencv-js.md).
+if (self.cv && typeof self.cv.then === 'function') self.cv.then(() => markReady());
+if (self.cv && self.cv.Mat) markReady();
 
 onmessage = ({data}) => {
   const {id, type} = data;
@@ -38,3 +41,7 @@ onmessage = ({data}) => {
 - OpenCV loads exactly once per worker lifetime.
 - No DOM in the worker (`self`, not `window`).
 - Messages contain only structured-cloneable data (ImageData, arrays, plain objects).
+
+## Tested references
+- Worker client with timeouts and respawn: `knowledge/wasm-expert/examples/cv-client.js` (10/10 tests)
+- Real worker + OpenCV.js + IndexedDB in Chrome: `knowledge/qa-tester/examples/smoke-app/` (10/10)

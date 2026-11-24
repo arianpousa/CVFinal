@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- smoke-app: the smallest app with the real architecture (worker + OpenCV.js + IndexedDB),
+     used to prove the qa-tester's acceptance checks run in Chrome. Not the product UI. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Smoke app</title></head>
+<body>
+  <p id="status" role="status" aria-live="polite">Loading scanner…</p>
+  <button id="scan" disabled>Scan sample</button>
+  <button id="reset">Reset app data</button>
+  <p>Saved scans: <span id="count">0</span></p>
+  <canvas id="out"></canvas>
+<script type="module">
+import * as DB from './db.js';
+
+const $ = (id) => document.getElementById(id);
+const status = (s) => { $('status').textContent = s; };
+let db = await DB.openDB({ onOutdated: () => status('Reload to update') });
+const refreshCount = async () => { $('count').textContent = (await DB.listScans(db)).length; };
+await refreshCount();
+
+// --- worker client (minimal; production uses wasm-expert/examples/cv-client.js) ---
+const worker = new Worker('./cv-worker.js');
+let nextId = 1; const pending = new Map();
+worker.onmessage = ({ data }) => {
+  if (data.type === 'ready') { status('✓ Ready'); $('scan').disabled = false; return; }
+  if (data.type === 'fatal') { status('Scanner error: ' + data.message); return; }
+  const p = pending.get(data.id); pending.delete(data.id);
+  data.type === 'error' ? p.reject(new Error(data.message)) : p.resolve(data);
+};
+worker.onerror = (e) => status('Scanner error: ' + e.message);
+const call = (type, payload, transfer) => new Promise((resolve, reject) => {
+  const id = nextId++; pending.set(id, { resolve, reject }); worker.postMessage({ id, type, ...payload }, transfer);
+});
+
+// synthetic "photo": dark desk + tilted white page with text lines
+function samplePhoto() {
+  const c = new OffscreenCanvas(800, 600), g = c.getContext('2d');
+  g.fillStyle = '#282828'; g.fillRect(0, 0, 800, 600);
+  g.fillStyle = '#e6e6e6'; g.beginPath(); [[150,90],[640,130],[600,520],[120,480]].forEach(([x,y],i)=> i?g.lineTo(x,y):g.moveTo(x,y)); g.fill();
+  g.strokeStyle = '#1e1e1e'; g.lineWidth = 4; for (let y = 180; y < 440; y += 40) { g.beginPath(); g.moveTo(220, y); g.lineTo(540, y + 10); g.stroke(); }
+  return g.getImageData(0, 0, 800, 600);
+}
+
+async function scanOnce() {
+  status('Working…');
+  const img = samplePhoto();
+  const det = await call('detect', { imageData: img }, []);                         // keep img for the warp
+  const res = await call('process', { imageData: img, corners: det.corners, mode: 'bw' }, [img.data.buffer]);
+  const out = $('out'); out.width = res.imageData.width; out.height = res.imageData.height;
+  out.getContext('2d').putImageData(new ImageData(res.imageData.data, res.imageData.width, res.imageData.height), 0, 0);
+  const full = await new Promise((r) => out.toBlob(r, 'image/png'));               // blobs BEFORE the transaction
+  const thumb = full;
+  await DB.saveScan(db, { title: 'Sample', mode: 'bw', width: out.width, height: out.height, corners: det.corners, full, thumb });
+  await refreshCount();
+  status('✓ Saved to Library');
+  return { found: det.found, heap: res.heapBytes, width: out.width, height: out.height };
+}
+$('scan').onclick = () => scanOnce();
+$('reset').onclick = async () => { worker.terminate(); await DB.resetAppData(db); location.reload(); };
+window.__scanOnce = scanOnce;     // test hook
+</script>
+</body>
+</html>

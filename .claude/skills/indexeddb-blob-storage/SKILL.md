@@ -16,7 +16,7 @@ add.onsuccess = () => {
 };
 await txDone(tx);
 ```
-`txDone(tx)` resolves on `complete`, rejects on `error`/`abort` with `tx.error`.
+`txDone(tx)` resolves on `complete`. On `error` it rejects with `e.target.error` (the failing request's error, because **`tx.error` is still null inside `onerror`**), and on `abort` with `tx.error`. The tested version is in `knowledge/indexeddb-expert/examples/db.js` (19/19 tests).
 
 ## Never
 - `await` anything unrelated between creating a transaction and issuing its requests (TransactionInactiveError).

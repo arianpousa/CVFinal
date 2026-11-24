@@ -1,0 +1,14 @@
+# _headers: the same rules in Netlify's _headers format (alternative to [[headers]] in netlify.toml).
+# Put this file in the publish directory. Use ONE of the two formats, not both.
+# Syntax: https://docs.netlify.com/manage/routing/headers/
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.wasm
+  Content-Type: application/wasm
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()

@@ -1,0 +1,30 @@
+# netlify.toml: worked example for the Smart Document Scanner (static site, no build).
+# Docs: https://docs.netlify.com/build/configure-builds/file-based-configuration/
+#       https://docs.netlify.com/manage/routing/headers/
+"$schema" = "https://open-api.netlify.com/netlify.schema.json"   # editor validation only; ignored at build
+
+[build]
+  publish = "."     # repo root is the site
+  command = ""      # no build step
+
+# Pinned, self-hosted OpenCV.js: cache for a year. Upgrading = NEW filename (cache busting).
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Only needed if a split opencv.js + .wasm build is ever used (instantiateStreaming needs this MIME).
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Site-wide security / permissions headers. HTML, JS, CSS keep Netlify's default
+# "public, max-age=0, must-revalidate" so every deploy is picked up immediately.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=()"

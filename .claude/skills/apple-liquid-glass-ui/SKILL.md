@@ -6,27 +6,26 @@ description: "Apple Liquid Glass-inspired visual design tokens and component sty
 
 Inspired by Apple's Liquid Glass material and Human Interface Guidelines — an original web interpretation, no Apple logos or trademarks.
 
-## Tokens (CSS custom properties in `styles.css`)
+## Tokens: use the TESTED file
+The canonical tokens are `knowledge/ui-designer-apple-liquid-glass/examples/tokens.css`. Copy it into `styles.css` and don't retype values from memory. Key values that passed `contrast-check.mjs` (18/18) and `render-check.cjs`:
 ```css
 :root{
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --fs-largeTitle: 34px; --fs-title: 22px; --fs-body: 17px; --fs-caption: 13px;
-  --radius-s: 10px; --radius-m: 16px; --radius-l: 24px;
-  --space: 8px;                               /* 8-pt grid */
-  --glass-bg: rgba(255,255,255,.55); --glass-border: rgba(255,255,255,.6);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+  --fs-large-title: 2.125rem; --fs-title: 1.375rem; --fs-body: 1.0625rem; --fs-footnote: .8125rem; --fs-min: .6875rem;
+  --tap: 44px; --radius-m: 16px; --radius-l: 24px;
+  --glass-fill: rgba(255,255,255,.85);      /* .55/.72 FAILED 4.5:1 for secondary text in the worst case */
   --glass-blur: saturate(180%) blur(24px);
-  --tint: #0a84ff; --ok: #30d158; --warn: #ff9f0a; --danger: #ff453a;
-  --text: #1d1d1f; --text-2: #6e6e73; --bg: #f2f2f7;
-  --ease: cubic-bezier(.2,.8,.2,1); --dur: 220ms;
+  --text: #1d1d1f; --text-2: #57575e;        /* #6e6e73 FAILED on glass */
+  --accent: #0066cc; --on-accent: #fff;      /* the ONE tinted control (primary action) */
 }
 @media (prefers-color-scheme: dark){ :root{
-  --glass-bg: rgba(30,30,32,.55); --glass-border: rgba(255,255,255,.12);
-  --text:#f5f5f7; --text-2:#a1a1a6; --bg:#000; } }
-@media (prefers-reduced-motion: reduce){ :root{ --dur: 0ms; } }
-.glass{ background:var(--glass-bg); backdrop-filter:var(--glass-blur);
-        -webkit-backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border);
-        border-radius:var(--radius-l); }
+  --glass-fill: rgba(30,30,32,.85); --text:#f5f5f7; --text-2:#b0b0b8;
+  --accent:#0a84ff; --on-accent:#000; } }   /* white on #0a84ff fails 4.5:1 */
+@media (prefers-reduced-motion: reduce){ :root{ --dur:0ms } }
+@media (prefers-reduced-transparency: reduce){ :root{ --glass-fill: var(--surface); --glass-blur: none } }
+@media (prefers-contrast: more){ :root{ --text-2: var(--text); --glass-fill: var(--surface) } }
 ```
+Glass only on the functional layer (toolbar, status pill, sheets). Content stays solid (HIG Materials). Re-run `contrast-check.mjs` after any color change.
 
 ## Principles
 - Content first: the scan is the hero; glass chrome floats above it (toolbar, status pill, sheets).

@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- accessible-corner-editor.html: Wren's reference interaction.
+     Corner handles work by pointer drag AND keyboard (HIG: offer alternatives to gestures),
+     the status pill announces changes (aria-live), the empty state gives a next step. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adjust corners</title>
+<style>
+  body { font: 17px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; margin: 24px; color: #1d1d1f; }
+  .stage { position: relative; width: 400px; height: 300px; background: #ccc; border-radius: 16px; touch-action: none; }
+  svg { position: absolute; inset: 0; }
+  .handle { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
+            border: 2px solid #fff; background: rgba(0,102,204,.85); cursor: grab; padding: 0; }
+  .handle:focus-visible { outline: 3px solid #1d1d1f; outline-offset: 3px; }
+  [role=status] { display: inline-block; margin: 12px 0; font-weight: 600; }
+  button.text { min-height: 44px; padding: 0 16px; font: inherit; }
+  @media (prefers-reduced-motion: no-preference) { .handle { transition: box-shadow .2s; } }
+</style>
+</head>
+<body>
+  <p id="status" role="status" aria-live="polite">✓ Ready</p>
+
+  <section id="empty" aria-labelledby="empty-title">
+    <h2 id="empty-title">No scans yet</h2>
+    <p>Scan a receipt, letter or page. It stays on this device.</p>
+    <button class="text" id="sample">Try a sample</button>
+  </section>
+
+  <section id="editor" hidden aria-label="Adjust page corners">
+    <p id="help">Drag a corner, or focus it and use the arrow keys (Shift moves 10 pixels).</p>
+    <div class="stage" id="stage">
+      <svg viewBox="0 0 400 300" aria-hidden="true"><polygon id="poly" fill="rgba(0,102,204,.15)" stroke="#0066cc" stroke-width="2"/></svg>
+    </div>
+    <button class="text" id="save">Save scan</button>
+  </section>
+
+<script>
+const names = ['Top-left', 'Top-right', 'Bottom-right', 'Bottom-left'];
+const pts = [{x:60,y:40},{x:340,y:50},{x:330,y:260},{x:50,y:250}];
+const stage = document.getElementById('stage'), poly = document.getElementById('poly');
+const status = document.getElementById('status');
+const clamp = (v, max) => Math.max(0, Math.min(max, v));
+
+const handles = pts.map((p, i) => {
+  const b = document.createElement('button');
+  b.className = 'handle'; b.dataset.i = i;
+  b.setAttribute('aria-describedby', 'help');
+  stage.appendChild(b);
+  // keyboard alternative to dragging
+  b.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 10 : 1;
+    const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    p.x = clamp(p.x + d[0], 400); p.y = clamp(p.y + d[1], 300); render();
+  });
+  // pointer drag
+  b.addEventListener('pointerdown', (e) => {
+    b.setPointerCapture(e.pointerId);
+    const move = (ev) => { const r = stage.getBoundingClientRect(); p.x = clamp(ev.clientX - r.left, 400); p.y = clamp(ev.clientY - r.top, 300); render(); };
+    b.addEventListener('pointermove', move);
+    b.addEventListener('pointerup', () => b.removeEventListener('pointermove', move), { once: true });
+  });
+  return b;
+});
+
+function render() {
+  pts.forEach((p, i) => {
+    handles[i].style.left = p.x + 'px'; handles[i].style.top = p.y + 'px';
+    handles[i].setAttribute('aria-label', `${names[i]} corner, x ${Math.round(p.x)}, y ${Math.round(p.y)}`);
+  });
+  poly.setAttribute('points', pts.map((p) => `${p.x},${p.y}`).join(' '));
+}
+render();
+
+document.getElementById('sample').onclick = () => {
+  document.getElementById('empty').hidden = true;
+  document.getElementById('editor').hidden = false;
+  status.textContent = 'Page found. Adjust the corners if needed.';
+  handles[0].focus();
+};
+document.getElementById('save').onclick = async () => {
+  const save = document.getElementById('save');
+  save.disabled = true; status.textContent = 'Working…';            // only this button is disabled
+  await new Promise((r) => setTimeout(r, 300));
+  save.disabled = false; status.textContent = '✓ Saved to Library';
+};
+window.__pts = pts;   // test hook
+</script>
+</body>
+</html>

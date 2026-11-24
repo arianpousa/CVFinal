@@ -38,6 +38,7 @@ if (self.cv && typeof self.cv.then === 'function') {
 }
 ```
 
+- ⚠️ **Tested gotcha:** the 4.10.0 module object is a *thenable*. `await cv`, `resolve(cv)` or `return cv` from an async function loops forever. Use only the callback forms above. Details and a reproduction are in `knowledge/opencv-expert/docs/01-loading-opencv-js.md`.
 - **Pin a version.** As of Oct 2026, `docs.opencv.org/4.x/opencv.js` redirects to 4.13.0, not the newest release, so pin a numbered version. ([issoh.co.jp][issoh]) We self-host a copy (see doc 04).
 
 ## 3. Function reference (what each step needs)

@@ -1,0 +1,90 @@
+<!doctype html>
+<!-- glass-components.html: Sable's reference components (open in Chrome, toggle dark mode).
+     Glass only on the functional layer (toolbar, status pill, sheet); content stays solid. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanner UI: glass components</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 400 var(--fs-body)/1.4 var(--font); color: var(--text); background: var(--bg); }
+
+  .glass {
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-stroke); box-shadow: var(--glass-shadow);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass { background: var(--surface); }          /* solid fallback keeps contrast */
+  }
+
+  /* Floating toolbar (functional layer) */
+  .toolbar { position: sticky; top: var(--space-3); margin: var(--space-3) auto; width: min(680px, calc(100% - 24px));
+             display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3);
+             border-radius: var(--radius-pill); z-index: 2; }
+  .toolbar h1 { font-size: var(--fs-headline); font-weight: 600; margin: 0 auto 0 var(--space-2); }
+
+  .btn { min-height: var(--tap); min-width: var(--tap); padding: 0 var(--space-4); border-radius: var(--radius-pill);
+         border: 1px solid var(--separator); background: transparent; color: var(--text);
+         font: 600 var(--fs-body) var(--font); cursor: pointer; transition: transform var(--dur) var(--ease); }
+  .btn:active { transform: scale(.97); }
+  .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }  /* the ONE tinted control */
+  .btn-danger { color: var(--danger); }
+
+  /* Status pill: color + icon + text (never color alone) */
+  .pill { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3);
+          border-radius: var(--radius-pill); font-size: var(--fs-footnote); font-weight: 600; }
+  .pill[data-state="ready"]   .dot { background: var(--ok); }
+  .pill[data-state="working"] .dot { background: var(--warn); }
+  .pill[data-state="error"]   .dot { background: var(--danger); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); }
+
+  /* Content layer: solid cards, no glass */
+  main { width: min(680px, calc(100% - 24px)); margin: var(--space-6) auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-4); }
+  .card { background: var(--surface); border-radius: var(--radius-m); overflow: hidden; border: 1px solid var(--separator); }
+  .thumb { aspect-ratio: 3/4; background: repeating-linear-gradient(#fff 0 14px, #ddd 14px 16px); }
+  /* HIG Dark Mode: "Soften the color of white backgrounds" in content images */
+  @media (prefers-color-scheme: dark) { .thumb, .thumb img { filter: brightness(.85); } }
+  .meta { padding: var(--space-3); }
+  .title { font-weight: 600; margin: 0; }
+  .sub { color: var(--text-2); font-size: var(--fs-footnote); margin: 2px 0 0; }
+
+  /* Sheet over a photo: dimming layer + glass (HIG: 35% dim under glass on bright media) */
+  .photo { position: relative; height: 220px; border-radius: var(--radius-l); overflow: hidden; margin-bottom: var(--space-6);
+           background: linear-gradient(135deg, #ffe7b0, #ffd1dc 40%, #c9e8ff); }
+  .photo::after { content: ""; position: absolute; inset: 0; background: var(--dim); }
+  .sheet { position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); z-index: 1;
+           display: flex; gap: var(--space-3); align-items: center; padding: var(--space-3); border-radius: var(--radius-l); }
+  .sheet p { margin: 0 auto 0 0; }
+</style>
+</head>
+<body>
+  <header class="toolbar glass" role="toolbar" aria-label="Scanner">
+    <h1>Doc Scanner</h1>
+    <span class="pill glass" data-state="ready" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span>✓ Ready</span>
+    <button class="btn btn-primary">Scan</button>
+  </header>
+
+  <main>
+    <div class="photo" aria-label="Captured photo">
+      <div class="sheet glass">
+        <p><strong>Page found.</strong> Drag the corners to adjust.</p>
+        <button class="btn">Retake</button>
+        <button class="btn btn-primary">Save scan</button>
+      </div>
+    </div>
+
+    <h2 style="font-size:var(--fs-title);margin:0 0 var(--space-4)">Library</h2>
+    <div class="grid">
+      <article class="card"><div class="thumb"></div><div class="meta"><p class="title">Grocery receipt</p><p class="sub">Nov 24 · B&amp;W</p></div></article>
+      <article class="card"><div class="thumb"></div><div class="meta"><p class="title">Lease page 3</p><p class="sub">Nov 22 · Gray</p></div></article>
+      <article class="card"><div class="thumb"></div><div class="meta"><p class="title">Class notes</p><p class="sub">Nov 20 · Color</p></div></article>
+    </div>
+    <p style="margin-top:var(--space-6)"><button class="btn btn-danger">Reset app data</button></p>
+  </main>
+</body>
+</html>

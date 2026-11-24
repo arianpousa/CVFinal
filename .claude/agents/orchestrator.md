@@ -44,4 +44,14 @@ The app is 100 % browser-only (OpenCV.js + WebAssembly in a Web Worker + Indexed
 - Everything committed to `main`.
 
 ## Before you answer
-Apply the `knowledge-lookup` skill: read the relevant `docs/` file and `knowledge/orchestrator/docs/` + `knowledge/orchestrator/examples/` first, cite official sources, and flag anything unverified.
+1. **Read every file in your knowledge folder first**, `knowledge/orchestrator/docs/` and `knowledge/orchestrator/examples/`, before you write code, a design or advice:
+   - `knowledge/orchestrator/docs/01-running-subagents.md`
+   - `knowledge/orchestrator/docs/02-deliverables-and-handoffs.md`
+   - `knowledge/orchestrator/examples/README.md`
+   - `knowledge/orchestrator/examples/build-plan.json`
+   - `knowledge/orchestrator/examples/handoff-and-summary-example.md`
+   - `knowledge/orchestrator/examples/plan_waves.py`
+2. **Prefer your knowledge folder over memory.** If what you remember disagrees with these notes or the tested examples, the knowledge folder wins. These notes come from the official docs (each has its source link) and the examples were run and recorded.
+3. Reuse the tested examples instead of inventing new patterns, and cite the official source link for any API detail you rely on.
+4. Then read the relevant shared research in `docs/` (index: `docs/README.md`).
+5. If something isn't covered, check the official docs, say so explicitly in your hand-off, and add a sourced note to `knowledge/orchestrator/docs/`.

@@ -1,0 +1,67 @@
+/* tokens.css: Sable's design tokens for the Smart Document Scanner.
+   An original web interpretation of Apple's Liquid Glass guidance (no Apple assets).
+   Sources (see ../docs): HIG Materials, Color, Typography, Accessibility, Dark Mode, Motion.
+   Contrast of every text/background pair is verified by contrast-check.mjs. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Type: HIG iOS defaults (Body 17, Large Title 34, Title 2 22, Footnote 13, minimum 11) */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+  --fs-large-title: 2.125rem;  /* 34px */
+  --fs-title: 1.375rem;        /* 22px */
+  --fs-headline: 1.0625rem;    /* 17px semibold */
+  --fs-body: 1.0625rem;        /* 17px */
+  --fs-footnote: 0.8125rem;    /* 13px */
+  --fs-min: 0.6875rem;         /* 11px: never smaller */
+
+  /* Layout */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px;
+  --radius-s: 10px; --radius-m: 16px; --radius-l: 24px; --radius-pill: 999px;
+  --tap: 44px;                 /* HIG default control size (iOS 44x44 pt) */
+
+  /* Content layer (solid, no glass: HIG says don't use Liquid Glass in the content layer) */
+  --bg: #f2f2f7;               /* iOS systemGray6 (light) */
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --text-2: #57575e;           /* secondary label, darkened until >= 4.5:1 on glass (contrast-check) */
+  --separator: rgba(60, 60, 67, 0.18);
+
+  /* Functional layer: "glass" (regular variant) for toolbar, status pill, sheets */
+  --glass-fill: rgba(255, 255, 255, 0.85);   /* 0.72 failed 4.5:1 for secondary text over black backdrops (contrast-check) */
+  --glass-stroke: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --glass-blur: saturate(180%) blur(24px);
+  --dim: rgba(0, 0, 0, 0.35);  /* HIG: 35% dimming layer under clear glass on bright media */
+
+  /* Color: one accent, used sparingly (primary action only) */
+  --accent: #0066cc;           /* accessible blue, white label >= 4.5:1 */
+  --on-accent: #ffffff;
+  --ok: #007a33;  --warn: #a15c00;  --danger: #c4161c;   /* text-safe status colors */
+
+  /* Motion */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur: 220ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000; --surface: #1c1c1e;
+    --text: #f5f5f7; --text-2: #b0b0b8;
+    --separator: rgba(84, 84, 88, 0.6);
+    --glass-fill: rgba(30, 30, 32, 0.85);
+    --glass-stroke: rgba(255, 255, 255, 0.14);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --accent: #0a84ff; --on-accent: #000000;   /* dark mode: black label on bright blue */
+    --ok: #30d158; --warn: #ffb340; --danger: #ff6961;
+  }
+}
+
+/* Accessibility settings (HIG: Reduce Motion, Reduce Transparency, Increase Contrast) */
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; } }
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-fill: var(--surface); --glass-blur: none; }
+}
+@media (prefers-contrast: more) {
+  :root { --text-2: var(--text); --glass-fill: var(--surface); --glass-stroke: var(--text); }
+}
