@@ -7,23 +7,23 @@ A **100 % browser-only** Smart Document Scanner. The user uploads a photo of a r
 - **IndexedDB** stores the scan library (Blobs plus metadata), settings and history. A **Reset app data** button always works.
 - Deployed to **Netlify as a static site**: no build step, publish directory `.`, no servers, no API keys. Every push to `main` redeploys.
 
-Research: `docs/README.md` (index) · Team design: `docs/expert-roster.md` · Hand-offs: `docs/handoff-log.md`
+Research: `docs/README.md` (index) · Team design: `docs/expert-roster.md` · Names, models and personalities: `docs/agent-brains.md` · Hand-offs: `docs/handoff-log.md`
 
 ## The team (`.claude/agents/`)
 
 | Agent | Model | Role |
 |---|---|---|
-| `orchestrator` | opus | Team lead. Plans, runs experts, routes every hand-off, enforces review, writes the who-did-what summary |
-| `opencv-expert` | opus | Vision pipeline: detect corners, warp, threshold |
-| `wasm-expert` | opus | opencv.js loading, Web Worker protocol, Mat memory, opencv.js caching |
-| `indexeddb-expert` | sonnet | `docscanner` DB: schema, Blob storage, quota, upgrades, Reset |
-| `meta-agent` | sonnet | Maintains agents, skills, knowledge folders and this file |
+| `orchestrator` (**Morgan**) | opus | Team lead. Plans, runs experts, routes every hand-off, enforces review, writes the who-did-what summary |
+| `opencv-expert` (**Iris**) | opus | Vision pipeline: detect corners, warp, threshold |
+| `wasm-expert` (**Theo**) | opus | opencv.js loading, Web Worker protocol, Mat memory, opencv.js caching |
+| `indexeddb-expert` (**Archie**) | sonnet | `docscanner` DB: schema, Blob storage, quota, upgrades, Reset |
+| `meta-agent` (**Mira**) | sonnet | Maintains agents, skills, knowledge folders and this file |
 | `ui-designer-apple-liquid-glass` (**Sable**) | sonnet | Liquid Glass visual system and component styling |
 | `ux-designer-apple-hig` (**Wren**) | sonnet | HIG flows, states, accessibility, copy |
-| `frontend-engineer` | sonnet | HTML/CSS/JS shell, camera and canvas, corner editor, library UI, pages |
-| `qa-tester` | sonnet | Chrome testing (local and live), DevTools, leak and persistence checks |
-| `netlify-deployer` | haiku | `netlify.toml`, headers, deploy and verification |
-| `docs-writer` | haiku | README, How it works, Resources, troubleshooting |
+| `frontend-engineer` (**Leo**) | sonnet | HTML/CSS/JS shell, camera and canvas, corner editor, library UI, pages |
+| `qa-tester` (**Quinn**) | sonnet | Chrome testing (local and live), DevTools, leak and persistence checks |
+| `netlify-deployer` (**Piper**) | haiku | `netlify.toml`, headers, deploy and verification |
+| `docs-writer` (**Paige**) | haiku | README, How it works, Resources, troubleshooting |
 
 Shared skills live in `.claude/skills/<skill-name>/SKILL.md`. Each agent preloads its skills through the `skills:` frontmatter field, following the matrix in `docs/expert-roster.md`. Every agent preloads `knowledge-lookup` and `handoff-log`.
 
