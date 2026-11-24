@@ -21,6 +21,7 @@ No server, no API key. All processing runs in a Web Worker so the page never fre
 | 03 | [03-indexeddb-design.md](03-indexeddb-design.md) | Schema for scans (Blobs), settings and history; versions, transactions, quotas, Reset button | IndexedDB expert |
 | 04 | [04-netlify-hosting.md](04-netlify-hosting.md) | Serving the ~10 MB `opencv.js` (embedded Wasm), MIME types, cache headers, `netlify.toml` | WebAssembly expert / orchestrator |
 | 05 | [05-troubleshooting-hangs.md](05-troubleshooting-hangs.md) | Why it hangs (stuck worker, blocked upgrade, memory) and fixes in Chrome DevTools | all |
+| — | [expert-roster.md](expert-roster.md) | The 11-agent team, one-line jobs, shared skills matrix, lifecycle and rubric coverage | orchestrator / meta-agent |
 
 ## Key decisions
 
