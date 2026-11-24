@@ -1,0 +1,16 @@
+{
+  "goal": "Build the Smart Document Scanner end to end (guide step 9), storing original + result Blobs",
+  "tasks": [
+    { "id": "ux-flow",     "owner": "ux-designer-apple-hig",          "reviewer": "ui-designer-apple-liquid-glass", "deps": [], "files": ["docs/design/flow-spec.md"] },
+    { "id": "cv-pipeline", "owner": "opencv-expert",                  "reviewer": "wasm-expert",                    "deps": [], "files": ["src/scanner-pipeline.js", "samples/", "tools/make_samples.py", "tests/unit/pipeline.test.mjs"] },
+    { "id": "worker",      "owner": "wasm-expert",                    "reviewer": "opencv-expert",                  "deps": [], "files": ["cv-worker.js", "src/cv-client.js", "vendor/opencv-4.10.0.js", "tests/unit/cv-client.test.mjs"] },
+    { "id": "storage",     "owner": "indexeddb-expert",               "reviewer": "qa-tester",                      "deps": [], "files": ["src/db.js", "tests/unit/db.test.mjs"] },
+    { "id": "ui-system",   "owner": "ui-designer-apple-liquid-glass", "reviewer": "ux-designer-apple-hig",          "deps": ["ux-flow"], "files": ["styles.css"] },
+    { "id": "hosting",     "owner": "netlify-deployer",               "reviewer": "wasm-expert",                    "deps": ["worker"], "files": ["netlify.toml"] },
+    { "id": "app-shell",   "owner": "frontend-engineer",              "reviewer": "ux-designer-apple-hig",          "deps": ["ui-system", "worker", "storage", "cv-pipeline"], "files": ["index.html", "app.js", "src/capture.js"] },
+    { "id": "pages",       "owner": "docs-writer",                    "reviewer": "ux-designer-apple-hig",          "deps": ["app-shell"], "files": ["how-it-works.html", "resources.html"] },
+    { "id": "qa-local",    "owner": "qa-tester",                      "reviewer": "orchestrator",                   "deps": ["app-shell", "hosting", "pages"], "files": ["tests/e2e/", "docs/screenshots/"] },
+    { "id": "readme",      "owner": "docs-writer",                    "reviewer": "netlify-deployer",               "deps": ["qa-local"], "files": ["README.md"] },
+    { "id": "summary",     "owner": "orchestrator",                   "reviewer": "docs-writer",                    "deps": ["readme"], "files": ["docs/handoff-log.md", "README.md#who-did-what"] }
+  ]
+}

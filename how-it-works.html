@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>How it works · Doc Scanner</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar glass">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0066cc"/><path d="M9 7h10l5 5v13H9z" fill="#fff"/><path d="M12 16h9M12 20h9M12 12h5" stroke="#0066cc" stroke-width="2"/></svg>
+    <span>Doc Scanner</span>
+  </div>
+  <nav class="nav" aria-label="Pages">
+    <a href="./">Scanner</a>
+    <a href="how-it-works.html" aria-current="page">How it works</a>
+    <a href="resources.html">Resources</a>
+  </nav>
+</header>
+
+<main id="main" class="article">
+  <article class="card">
+    <h1>How it works</h1>
+    <p class="lede">Everything happens inside your browser. Your photos are never uploaded, and there is no server and no account.</p>
+
+    <h2>The four steps</h2>
+    <ol class="steps">
+      <li><div><strong>Find the page.</strong> The app makes a gray copy of your photo, softens it slightly so paper texture doesn't count as an edge, and traces strong edges with the <a href="https://docs.opencv.org/5.x/d7/de1/tutorial_js_canny.html">Canny edge detector</a>. It then looks for the largest outline that simplifies to <a href="https://docs.opencv.org/4.x/dc/dcf/tutorial_js_contour_features.html">four corners</a>. That's the page. If the edges are faint, it tries again by separating bright paper from a darker desk. If nothing fits, the corners start at the photo's edges and you drag them into place.</div></li>
+      <li><div><strong>Flatten it.</strong> The four corners are stretched to a rectangle with a <a href="https://docs.opencv.org/4.x/dd/d52/tutorial_js_geometric_transformations.html">perspective warp</a>, so a photo taken at an angle looks scanned flat. The app also works out the page's real shape from the corners, so a letter photographed at a steep angle still comes out letter-shaped, not squashed.</div></li>
+      <li><div><strong>Make it crisp.</strong> <a href="https://docs.opencv.org/4.x/d7/dd0/tutorial_js_thresholding.html">Adaptive thresholding</a> decides black or white for each small neighbourhood separately, so a shadow across the page doesn't turn into a black blotch. You can also keep it in Color or Gray.</div></li>
+      <li><div><strong>Save it.</strong> The original photo and the cleaned scan are saved together, with a name and the date, in your browser's own database.</div></li>
+    </ol>
+
+    <h2>OpenCV.js</h2>
+    <p><a href="https://docs.opencv.org/4.x/d0/d84/tutorial_js_usage.html">OpenCV</a> is a large, well-known computer-vision library written in C++. OpenCV.js is the same library rebuilt so it can run in a web page. This app uses the official 4.10.0 build, stored with the site as one 10 MB file (about 3.4 MB once the server compresses it). Your browser downloads it once and then keeps it in its cache.</p>
+
+    <h2>WebAssembly</h2>
+    <p><a href="https://webassembly.org/">WebAssembly</a> is a compact binary format that browsers run at close to native speed. OpenCV.js is C++ compiled to WebAssembly, so the image maths runs much faster than ordinary JavaScript would.</p>
+    <p>WebAssembly has its own block of memory that JavaScript's automatic clean-up can't see. Every image OpenCV.js works on (a <code>cv.Mat</code>) lives there, so the app <a href="https://docs.opencv.org/4.x/de/d06/tutorial_js_basic_ops.html">deletes each one</a> as soon as it's done. In the project's tests, that memory stayed at 128 MiB after 420 scans in a row, so nothing leaks.</p>
+
+    <h2>A Web Worker, so the page never freezes</h2>
+    <p>A <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Worker</a> is a background thread. OpenCV.js loads once inside it, and every scan runs there, so buttons, scrolling and the corner handles stay responsive while a scan is processed. Images are handed to the worker as <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects">transferable objects</a>, which moves them without copying. If the worker ever gets stuck, the app stops it and starts a fresh one.</p>
+
+    <h2>IndexedDB: your library stays on your device</h2>
+    <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API">IndexedDB</a> is a database built into every modern browser. The app keeps a database called <code>docscanner</code> with four parts: <code>scans</code> (name, date, size, style), <code>blobs</code> (the original photo, the scan and a thumbnail, stored as image files), <code>settings</code> and <code>history</code>. Each save is one all-or-nothing step, so a scan is never half-saved, and the library is still there after you refresh or restart the browser.</p>
+    <p>The database has a version number. When a future version changes its layout and you have the app open in two tabs, the old tab steps aside for the update. If a tab can't, the app asks you to close it.</p>
+
+    <h2 id="troubleshooting">Troubleshooting</h2>
+    <table>
+      <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
+      <tbody>
+        <tr><td>"Loading scanner…" never turns into "Ready"</td><td>Check your connection and reload with <strong>Ctrl+Shift+R</strong>. The first visit downloads about 3.4 MB. If it still fails, press <strong>Try again</strong> in the banner.</td></tr>
+        <tr><td>"Close other tabs of this app to finish updating."</td><td>Another tab has an older copy of the database open. Close the other tabs, and this one continues on its own.</td></tr>
+        <tr><td>"Couldn't find the page edges."</td><td>Drag the four corners onto the page corners, or focus a corner and use the arrow keys. A darker background behind the page helps.</td></tr>
+        <tr><td>"Storage is full."</td><td>Delete a few scans from the Library.</td></tr>
+        <tr><td>Anything else seems stuck</td><td>Use <strong>Reset app data</strong> at the bottom of the scanner page. It deletes every scan and setting stored in this browser and reloads the app.</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Looking inside with Chrome DevTools (Windows):</strong> press <strong>F12</strong> (or <strong>Ctrl+Shift+I</strong>), open the <strong>Application</strong> tab, then <strong>Storage → IndexedDB → docscanner</strong>. Pick a store, such as <code>scans</code>, to see your records, and press the refresh button in that panel after saving a new scan. From there you can delete single entries, clear a store or delete the database (<a href="https://developer.chrome.com/docs/devtools/storage/indexeddb">Chrome DevTools IndexedDB guide</a>). <strong>Application → Storage → Clear site data</strong> removes everything at once. The <strong>Console</strong> tab shows errors, and <strong>Sources → Threads</strong> lists the scanner's worker.</p>
+
+    <p><a href="resources.html">See every source this project relies on</a> · <a href="./">Back to the scanner</a></p>
+  </article>
+</main>
+</body>
+</html>

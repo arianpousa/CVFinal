@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Scan receipts and pages in your browser. OpenCV.js finds the page, flattens it and cleans it up. Nothing is uploaded.">
+<meta name="color-scheme" content="light dark">
+<title>Doc Scanner · scan pages in your browser</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230066cc'/%3E%3Cpath d='M9 7h10l5 5v13H9z' fill='%23fff'/%3E%3Cpath d='M12 16h9M12 20h9M12 12h5' stroke='%230066cc' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar glass">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0066cc"/><path d="M9 7h10l5 5v13H9z" fill="#fff"/><path d="M12 16h9M12 20h9M12 12h5" stroke="#0066cc" stroke-width="2"/></svg>
+    <span>Doc Scanner</span>
+  </div>
+  <span id="status" class="pill glass" data-state="loading" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="status-text">Loading scanner…</span></span>
+  <nav class="nav" aria-label="Pages">
+    <a href="how-it-works.html">How it works</a>
+    <a href="resources.html">Resources</a>
+  </nav>
+</header>
+
+<main id="main">
+  <!-- Banners: scanner error, blocked upgrade, outdated tab, storage full, storage closed -->
+  <div id="banner" class="banner glass" hidden role="alert">
+    <p id="banner-text"></p>
+    <div class="row" id="banner-actions"></div>
+  </div>
+
+  <!-- Step 1: capture -->
+  <section id="capture" class="card" aria-labelledby="capture-title">
+    <header>
+      <div>
+        <h2 id="capture-title">Scan a page</h2>
+        <p class="lede">Upload a photo of a receipt, letter or page. The app finds the edges, flattens it and makes it crisp. It stays on this device.</p>
+      </div>
+    </header>
+    <div class="row">
+      <button id="upload" class="btn btn-primary" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>
+        Upload photo
+      </button>
+      <input id="file" type="file" accept="image/*" hidden>
+      <button id="camera" class="btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Use camera
+      </button>
+      <span class="label-sm" id="sample-label">Try a sample:</span>
+      <div class="row" role="group" aria-labelledby="sample-label">
+        <button class="btn btn-sm" type="button" data-sample="samples/receipt.jpg" data-name="Receipt sample">Receipt</button>
+        <button class="btn btn-sm" type="button" data-sample="samples/letter.jpg" data-name="Letter sample">Letter</button>
+      </div>
+    </div>
+    <div id="camera-panel" class="camera" hidden>
+      <video id="video" playsinline muted aria-label="Camera preview"></video>
+      <div class="row">
+        <button id="shoot" class="btn btn-primary" type="button">Take photo</button>
+        <button id="camera-cancel" class="btn" type="button">Cancel</button>
+      </div>
+    </div>
+    <p id="capture-msg" class="message" aria-live="polite"></p>
+  </section>
+
+  <!-- Step 2: adjust corners, choose mode, save -->
+  <section id="adjust-card" class="card" aria-labelledby="adjust-title" hidden>
+    <header>
+      <div>
+        <h2 id="adjust-title">Adjust</h2>
+        <p class="lede" id="adjust-help">Drag a corner, or focus it and use the arrow keys (Shift moves 10 pixels).</p>
+      </div>
+    </header>
+    <div class="adjust">
+      <div class="stage" id="stage">
+        <canvas id="photo" aria-label="Your photo with the detected page outlined"></canvas>
+        <svg id="overlay" preserveAspectRatio="none" aria-hidden="true"><polygon id="poly" points=""/></svg>
+      </div>
+      <div class="side">
+        <div class="preview" id="preview-box">
+          <canvas id="preview" aria-label="Preview of the cleaned scan"></canvas>
+        </div>
+        <fieldset class="segmented" id="mode-group">
+          <legend>Scan style</legend>
+          <label><input type="radio" name="mode" value="color"><span>Color</span></label>
+          <label><input type="radio" name="mode" value="gray"><span>Gray</span></label>
+          <label><input type="radio" name="mode" value="bw" checked><span>B&amp;W</span></label>
+        </fieldset>
+        <div class="field">
+          <label class="label-sm" for="name">Name</label>
+          <input id="name" type="text" maxlength="80" autocomplete="off">
+        </div>
+        <div class="row">
+          <button id="save" class="btn btn-primary" type="button">Save scan</button>
+          <button id="retake" class="btn" type="button">Retake</button>
+        </div>
+        <p id="adjust-msg" class="message" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Step 3: library -->
+  <section id="library" class="card" aria-labelledby="library-title">
+    <header>
+      <h2 id="library-title">Library</h2>
+      <span class="label-sm" id="count" aria-live="polite">Opening library…</span>
+    </header>
+    <ul id="grid" class="grid" aria-labelledby="library-title"></ul>
+    <div id="empty" class="empty" hidden>
+      <p>No scans yet.</p>
+      <p class="lede">Scan a receipt, letter or page. It stays on this device.</p>
+      <button id="empty-sample" class="btn" type="button">Try a sample</button>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p id="engine">OpenCV.js runs in a Web Worker. <span id="storage"></span></p>
+  <nav aria-label="More">
+    <a href="how-it-works.html">How it works</a>
+    <a href="resources.html">Resources</a>
+    <button id="reset" class="btn btn-danger btn-sm" type="button">Reset app data</button>
+  </nav>
+</footer>
+
+<!-- Scan viewer: original and result side by side -->
+<dialog id="viewer" aria-labelledby="viewer-title">
+  <div class="sheet glass">
+    <form id="rename-form" class="row" method="dialog">
+      <div class="field" style="flex:1 1 220px">
+        <label class="label-sm" for="viewer-name">Name</label>
+        <input id="viewer-name" type="text" maxlength="80" autocomplete="off">
+      </div>
+      <button id="rename" class="btn" type="submit" value="rename">Rename</button>
+    </form>
+    <h2 id="viewer-title" class="sr-only">Scan</h2>
+    <p id="viewer-meta" class="label-sm"></p>
+    <div class="viewer">
+      <figure><figcaption>Original</figcaption><img id="viewer-original" alt="Original photo"></figure>
+      <figure><figcaption>Scan</figcaption><img id="viewer-result" alt="Cleaned scan"></figure>
+    </div>
+    <div class="row">
+      <a id="dl-result" class="btn btn-primary" download>Download scan</a>
+      <a id="dl-original" class="btn" download>Download original</a>
+      <button id="delete" class="btn btn-danger" type="button">Delete</button>
+      <button id="viewer-close" class="btn" type="button" style="margin-left:auto">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Confirmation (Delete, Delete all) -->
+<dialog id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+  <form method="dialog" class="sheet small glass">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-body"></p>
+    <div class="row">
+      <button id="confirm-ok" class="btn btn-danger" value="ok"></button>
+      <button class="btn" value="cancel" autofocus>Cancel</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

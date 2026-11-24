@@ -1,0 +1,17 @@
+{
+  "name": "docscanner-tests",
+  "private": true,
+  "type": "module",
+  "description": "Unit and end-to-end tests for the Smart Document Scanner (not part of the site).",
+  "scripts": {
+    "test:unit": "node unit/pipeline.test.mjs && node unit/cv-client.test.mjs && node unit/db.test.mjs && node unit/contrast.test.mjs",
+    "test:e2e": "node e2e/app.e2e.cjs && node e2e/a11y.e2e.cjs",
+    "test": "npm run test:unit && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@techstark/opencv-js": "4.10.0-release.1",
+    "fake-indexeddb": "^6.0.0",
+    "jpeg-js": "^0.4.4",
+    "playwright": "^1.48.0"
+  }
+}
